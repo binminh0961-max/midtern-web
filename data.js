@@ -1,5 +1,4 @@
-// data.js - Dữ liệu mẫu dùng chung cho toàn bộ dự án COOK & SHARE
-// Khởi tạo và lưu vào LocalStorage nếu chưa có
+// data.js - Quản lý dữ liệu (Kết nối MySQL qua PHP API kèm Fallback dự phòng)
 
 const DEFAULT_RECIPES = [
   {
@@ -159,7 +158,7 @@ const DEFAULT_RECIPES = [
     reviewCount: 19,
     author: "Tuệ Lâm",
     postedTime: "4 giờ trước",
-    image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1000&q=80",
+    image: "assets/dau-hu-sot-ca.jpg",
     ingredients: [
       "3 miếng đậu hũ trắng (cắt vuông vừa ăn)",
       "3 quả cà chua chín mọng, băm nhỏ",
@@ -180,25 +179,31 @@ const DEFAULT_RECIPES = [
   }
 ];
 
-// Khởi tạo recipes vào LocalStorage nếu chưa có
-function getRecipes() {
-  const saved = localStorage.getItem("recipes");
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      // Đảm bảo dữ liệu LocalStorage có đủ món mặc định mới nhất
-      if (Array.isArray(parsed) && parsed.length < DEFAULT_RECIPES.length) {
-        localStorage.setItem("recipes", JSON.stringify(DEFAULT_RECIPES));
-        return DEFAULT_RECIPES;
+// Khởi tạo mảng biến toàn cục recipes
+let recipes = DEFAULT_RECIPES;
+
+// Hàm tải dữ liệu từ MySQL qua API PHP
+async function fetchRecipesFromMySQL() {
+  try {
+    const res = await fetch("api_get_recipes.php");
+    if (!res.ok) throw new Error("HTTP error " + res.status);
+    const json = await res.json();
+    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+      recipes = json.data;
+      console.log("Đã nạp " + recipes.length + " món ăn trực tiếp từ MySQL!");
+      
+      // Gọi cập nhật lại giao diện sau khi có dữ liệu từ MySQL
+      if (typeof renderRecipes === "function") {
+        renderRecipes(recipes);
       }
-      return parsed;
-    } catch (e) {
-      console.error("Lỗi parse LocalStorage, dùng data mặc định:", e);
+      if (typeof showDetail === "function") {
+        showDetail(recipes[0].id);
+      }
     }
+  } catch (err) {
+    console.warn("Chưa kết nối được MySQL (hoặc đang chạy file HTML tĩnh), dùng dữ liệu mặc định:", err);
   }
-  localStorage.setItem("recipes", JSON.stringify(DEFAULT_RECIPES));
-  return DEFAULT_RECIPES;
 }
 
-// Biến toàn cục recipes để các thành viên khác sử dụng trực tiếp
-let recipes = getRecipes();
+// Tự động gọi API tải dữ liệu từ MySQL khi load trang
+document.addEventListener("DOMContentLoaded", fetchRecipesFromMySQL);

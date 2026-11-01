@@ -1,0 +1,325 @@
+<?php
+// index.php - Hệ thống chia sẻ công thức nấu ăn COOK & SHARE
+// Sử dụng PHP 8.x & MySQL trên XAMPP
+require_once 'db.php';
+
+// Truy vấn danh sách món ăn từ MySQL
+$recipeQuery = $conn->query("SELECT * FROM `recipes` ORDER BY `id` ASC");
+$totalRecipes = $recipeQuery ? $recipeQuery->num_rows : 6;
+?>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COOK & SHARE - Nền tảng chia sẻ món ăn (PHP & MySQL)</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <header class="navbar-custom sticky-top">
+    <div class="container-fluid px-lg-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+      
+      <!-- Logo -->
+      <a href="index.php" class="brand-logo">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/>
+          <line x1="6" y1="17" x2="18" y2="17"/>
+        </svg>
+        <div>
+          <div class="brand-title">COOK & SHARE</div>
+          <div class="brand-subtitle">Cộng đồng chia sẻ món ăn (PHP &amp; MySQL)</div>
+        </div>
+      </a>
+
+      <!-- Ô tìm kiếm (Member 2 phụ trách logic) -->
+      <div class="search-container mx-auto">
+        <input type="text" id="search-box" class="form-control search-input" placeholder="Tìm món ăn, nguyên liệu...">
+        <span class="search-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </span>
+      </div>
+
+      <!-- Nút Đăng món mới (Member 4 phụ trách Modal/Form) -->
+      <div>
+        <button type="button" class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addRecipeModal" id="btn-open-add-modal">
+          <span>+</span> Đăng món mới
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= MAIN LAYOUT (2 CỘT) ================= -->
+  <main class="container-fluid px-lg-4 py-4">
+    <div class="row g-4">
+      
+      <!-- ================= CỘT TRÁI (Member 2: Render danh sách & bộ lọc) ================= -->
+      <aside class="col-12 col-md-5 col-lg-4" id="left-sidebar">
+        
+        <!-- Tiêu đề sidebar -->
+        <h2 class="sidebar-title" id="sidebar-count">Món ăn từ cộng đồng (<?php echo $totalRecipes; ?>)</h2>
+
+        <!-- Danh mục bộ lọc (Member 2 xử lý event) -->
+        <div class="filter-scroll mb-3" id="category-filters">
+          <button type="button" class="btn-filter active" data-cate="Tất cả">Tất cả</button>
+          <button type="button" class="btn-filter" data-cate="Món mặn">Món mặn</button>
+          <button type="button" class="btn-filter" data-cate="Món chay">Món chay</button>
+          <button type="button" class="btn-filter" data-cate="Món ăn vặt">Món ăn vặt</button>
+          <button type="button" class="btn-filter" data-cate="Nhanh gọn">Nhanh gọn</button>
+        </div>
+
+        <!-- Danh sách thẻ món ăn (Member 2 render động vào đây) -->
+        <div id="recipe-list">
+          
+          <!-- Card 1: Active mặc định -->
+          <div class="recipe-card active" onclick="showDetail(1)" data-id="1">
+            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=300&q=80" alt="Sườn Xào Chua Ngọt" class="recipe-thumb">
+            <div class="recipe-card-info">
+              <div class="recipe-card-title">Sườn Xào Chua Ngọt</div>
+              <div class="recipe-card-meta">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>30 phút chuẩn bị</span>
+              </div>
+              <div class="recipe-card-rating">⭐ 4.8</div>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="recipe-card" onclick="showDetail(2)" data-id="2">
+            <img src="https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=300&q=80" alt="Bánh Mì Chảo" class="recipe-thumb">
+            <div class="recipe-card-info">
+              <div class="recipe-card-title">Bánh Mì Chảo</div>
+              <div class="recipe-card-meta">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>15 phút chuẩn bị</span>
+              </div>
+              <div class="recipe-card-rating">⭐ 4.7</div>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="recipe-card" onclick="showDetail(3)" data-id="3">
+            <img src="https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=300&q=80" alt="Cá Kho Tộ" class="recipe-thumb">
+            <div class="recipe-card-info">
+              <div class="recipe-card-title">Cá Kho Tộ</div>
+              <div class="recipe-card-meta">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>40 phút chuẩn bị</span>
+              </div>
+              <div class="recipe-card-rating">⭐ 4.9</div>
+            </div>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="recipe-card" onclick="showDetail(4)" data-id="4">
+            <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=300&q=80" alt="Mỳ Ý Sốt Bò Bằm" class="recipe-thumb">
+            <div class="recipe-card-info">
+              <div class="recipe-card-title">Mỳ Ý Sốt Bò Bằm</div>
+              <div class="recipe-card-meta">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>25 phút chuẩn bị</span>
+              </div>
+              <div class="recipe-card-rating">⭐ 4.6</div>
+            </div>
+          </div>
+
+          <!-- Card 5 -->
+          <div class="recipe-card" onclick="showDetail(5)" data-id="5">
+            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80" alt="Canh Chua Cá Lóc" class="recipe-thumb">
+            <div class="recipe-card-info">
+              <div class="recipe-card-title">Canh Chua Cá Lóc</div>
+              <div class="recipe-card-meta">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>35 phút chuẩn bị</span>
+              </div>
+              <div class="recipe-card-rating">⭐ 4.8</div>
+            </div>
+          </div>
+
+          <!-- Card 6: Món chay -->
+          <div class="recipe-card" onclick="showDetail(6)" data-id="6">
+            <img src="assets/dau-hu-sot-ca.jpg" alt="Đậu Hũ Sốt Cà Chua" class="recipe-thumb">
+            <div class="recipe-card-info">
+              <div class="recipe-card-title">Đậu Hũ Sốt Cà Chua</div>
+              <div class="recipe-card-meta">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>15 phút chuẩn bị</span>
+              </div>
+              <div class="recipe-card-rating">⭐ 4.9</div>
+            </div>
+          </div>
+
+        </div>
+
+      </aside>
+
+      <!-- ================= CỘT PHẢI (Member 1 điều phối, Member 3 & 4 render) ================= -->
+      <section class="col-12 col-md-7 col-lg-8" id="right-content">
+        
+        <!-- TRẠNG THÁI 1: CHI TIẾT MÓN ĂN (Mặc định hiển thị) -->
+        <article class="detail-container" id="recipe-detail">
+          
+          <!-- Tiêu đề & Thông tin meta (Member 3) -->
+          <div id="recipe-detail-header">
+            <h1 class="detail-title" id="detail-title">SƯỜN XÀO CHUA NGỌT</h1>
+            
+            <div class="detail-meta-row">
+              <span id="detail-time">⏱ 40 phút</span>
+              <span>•</span>
+              <span id="detail-difficulty">Khó: Dễ</span>
+              <span>•</span>
+              <span class="detail-meta-rating" id="detail-rating">⭐ 4.8 (24 đánh giá)</span>
+            </div>
+
+            <div class="detail-author-row" id="detail-author">
+              Đăng bởi: <strong>Phương Anh • Huy</strong> 2 giờ trước
+            </div>
+          </div>
+
+          <!-- Ảnh lớn món ăn (Member 3) -->
+          <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=80" 
+               alt="Sườn Xào Chua Ngọt" class="detail-banner-img" id="detail-image">
+
+          <!-- 2 Cột: Nguyên liệu & Các bước làm (Member 3) -->
+          <div class="row g-4" id="recipe-detail-body">
+            
+            <!-- Cột Nguyên liệu -->
+            <div class="col-12 col-lg-6">
+              <h3 class="section-heading">NGUYÊN LIỆU</h3>
+              <div id="ingredient-list">
+                <!-- Member 3 render động vào đây -->
+              </div>
+            </div>
+
+            <!-- Cột Các bước làm -->
+            <div class="col-12 col-lg-6">
+              <h3 class="section-heading">CÁC BƯỚC LÀM</h3>
+              <div id="step-list">
+                <!-- Member 3 render động vào đây -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Khu vực Bình luận & Đánh giá (Member 4) -->
+          <section class="comment-section" id="comment-section">
+            <h3 class="section-heading" id="comment-heading">BÌNH LUẬN &amp; ĐÁNH GIÁ (24)</h3>
+
+            <!-- Form gửi bình luận (Member 4 xử lý submit & PHP MySQL API) -->
+            <form id="comment-form" class="comment-input-row" onsubmit="event.preventDefault();">
+              <span class="fs-5 text-muted">+</span>
+              <input type="text" id="comment-author" class="comment-author-input" placeholder="Tên bạn...">
+              <input type="text" id="comment-input" class="comment-input" placeholder="Viết bình luận của bạn..." required>
+              
+              <div class="d-flex align-items-center gap-1 rating-toggle-group">
+                <span class="comment-rating-label">Đánh giá:</span>
+                <input type="radio" class="btn-check" name="rating-option" id="rate-good" value="Ngon 😋" checked>
+                <label class="rating-badge" for="rate-good">Ngon 😋</label>
+                <span class="text-muted">/</span>
+                <input type="radio" class="btn-check" name="rating-option" id="rate-bad" value="Dở 🤢">
+                <label class="rating-badge" for="rate-bad">Dở 🤢</label>
+              </div>
+
+              <button type="submit" class="btn btn-primary-custom" id="btn-submit-comment">Gửi bình luận</button>
+            </form>
+
+            <!-- Danh sách bình luận đã có (Member 4 / Member 3 render động) -->
+            <div id="comment-list">
+              <!-- Render bình luận từ MySQL -->
+            </div>
+
+          </section>
+
+        </article>
+
+        <!-- TRẠNG THÁI 2: MÀN HÌNH CHỜ (Khi chưa chọn món nào) -->
+        <div class="detail-container welcome-card d-none" id="welcome-screen">
+          <div class="welcome-icon">🍳</div>
+          <h2 class="welcome-title">Chào mừng bạn đến với COOK &amp; SHARE</h2>
+          <p class="welcome-desc">
+            Chọn một món ăn từ danh sách bên trái để xem công thức chi tiết, chuẩn bị nguyên liệu và cùng thảo luận đánh giá với cộng đồng!
+          </p>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================= MODAL ĐĂNG MÓN MỚI (Member 4) ================= -->
+  <div class="modal fade" id="addRecipeModal" tabindex="-1" aria-labelledby="addRecipeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title font-weight-bold" id="addRecipeModalLabel">Đăng Công Thức Món Ăn Mới</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="add-recipe-form">
+            <div class="row g-2 mb-3">
+              <div class="col-7">
+                <label for="new-recipe-name" class="form-label font-weight-bold">Tên món ăn</label>
+                <input type="text" class="form-control" id="new-recipe-name" placeholder="Ví dụ: Thịt kho hột vịt" required>
+              </div>
+              <div class="col-5">
+                <label for="new-recipe-author" class="form-label font-weight-bold">Người đăng</label>
+                <input type="text" class="form-control" id="new-recipe-author" placeholder="Tên bạn (VD: Huy)">
+              </div>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label for="new-recipe-category" class="form-label">Danh mục</label>
+                <select class="form-select" id="new-recipe-category">
+                  <option value="Món mặn">Món mặn</option>
+                  <option value="Món chay">Món chay</option>
+                  <option value="Món ăn vặt">Món ăn vặt</option>
+                  <option value="Nhanh gọn">Nhanh gọn</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label for="new-recipe-time" class="form-label">Thời gian</label>
+                <input type="text" class="form-control" id="new-recipe-time" placeholder="30 phút">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="new-recipe-image" class="form-label">Link ảnh món ăn</label>
+              <input type="url" class="form-control" id="new-recipe-image" placeholder="https://...">
+            </div>
+            <div class="mb-3">
+              <label for="new-recipe-ingredients" class="form-label">Nguyên liệu (mỗi dòng 1 loại)</label>
+              <textarea class="form-control" id="new-recipe-ingredients" rows="3" placeholder="500g thịt ba chỉ&#10;5 quả trứng vịt&#10;Nước dừa tươi"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="new-recipe-steps" class="form-label">Các bước thực hiện (mỗi dòng 1 bước)</label>
+              <textarea class="form-control" id="new-recipe-steps" rows="3" placeholder="Bước 1...&#10;Bước 2..."></textarea>
+            </div>
+            <div class="text-end">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+              <button type="submit" class="btn btn-primary-custom" id="btn-save-recipe">Đăng món ngay</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- ================= SCRIPTS DỰ ÁN (Load theo thứ tự giao ước) ================= -->
+  <script src="data.js"></script>
+  <script src="home.js"></script>
+  <script src="detail.js"></script>
+  <script src="form.js"></script>
+  <script src="main.js"></script>
+
+</body>
+</html>
