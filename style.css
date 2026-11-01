@@ -429,3 +429,39 @@ body {
   margin: 0 auto;
   font-size: 0.95rem;
 }
+/* Nguyên liệu đã hoàn thành */
+.ingredient-item.completed {
+  opacity: 0.5;
+}
+.ingredient-item.completed .ingredient-label {
+  text-decoration: line-through;
+}
+
+/* Bước làm dạng số thứ tự tròn màu cam */
+.step-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.step-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ff7a00;
+  color: #fff;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.step-text {
+  margin: 0;
+  line-height: 1.5;
+}

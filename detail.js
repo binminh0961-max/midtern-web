@@ -1,98 +1,170 @@
-// detail.js - Dành cho Thành viên 3 (Render Chi tiết món ăn & Hiệu ứng)
-// Nhận object recipeObj từ main.js (hàm showDetail) để render vào #recipe-detail
+// detail.js
 
-/*
-NHIỆM VỤ THÀNH VIÊN 3:
-1. Hàm renderDetail(recipeObj):
-   - Đổ thông tin tên món vào #detail-title
-   - Đổ thời gian, độ khó, đánh giá, người đăng
-   - Cập nhật ảnh vào #detail-image
-   - Render danh sách nguyên liệu vào #ingredient-list kèm checkbox
-   - Render các bước thực hiện vào #step-list
-2. Viết hiệu ứng: Khi click checkbox nguyên liệu, gạch ngang chữ (text-decoration: line-through) và mờ đi (opacity: 0.5).
-*/
+/* ================= HELPERS ================= */
+const $ = (id) => document.getElementById(id);
 
-// (Thành viên 3 sẽ dán code từ AI vào đây)
+function setText(id, value) {
+  const el = $(id);
+  if (el) el.textContent = value ?? '';
+}
+
 /**
- * Render chi tiết món ăn lên giao diện cột bên phải
- * @param {Object} recipeObj - Object chứa thông tin chi tiết món ăn
+ * Set text cho thẻ đầu tiên tồn tại trong danh sách ID (fallback an toàn
+ * khi chưa chốt được chính xác ID meta của giao diện).
  */
-function renderDetail(recipeObj) {
-  // 1. Hiển thị tiêu đề và hình ảnh
-  const titleEl = document.getElementById('detail-title');
-  const imageEl = document.getElementById('detail-image');
-  
-  if (titleEl) {
-    titleEl.textContent = recipeObj.name || '';
-  }
-  
-  if (imageEl) {
-    imageEl.src = recipeObj.image || '';
-    imageEl.alt = recipeObj.name || 'Hình ảnh món ăn';
-  }
-
-  // 2. Render danh sách nguyên liệu kèm checkbox
-  const ingredientListEl = document.getElementById('ingredient-list');
-  if (ingredientListEl) {
-    ingredientListEl.innerHTML = '';
-    
-    if (recipeObj.ingredients && Array.isArray(recipeObj.ingredients)) {
-      recipeObj.ingredients.forEach((ingredient, index) => {
-        const li = document.createElement('li');
-        li.style.listStyle = 'none';
-        li.style.marginBottom = '8px';
-        li.style.display = 'flex';
-        li.style.alignItems = 'center';
-        li.style.gap = '8px';
-        li.style.transition = 'all 0.2s ease';
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = `ingredient-${index}`;
-        checkbox.style.cursor = 'pointer';
-
-        const label = document.createElement('label');
-        label.htmlFor = `ingredient-${index}`;
-        label.textContent = ingredient;
-        label.style.cursor = 'pointer';
-
-        // Xệu ứng tương tác: Gạch ngang và mờ khi check/uncheck
-        checkbox.addEventListener('change', function () {
-          if (this.checked) {
-            label.style.textDecoration = 'line-through';
-            label.style.opacity = '0.5';
-          } else {
-            label.style.textDecoration = 'none';
-            label.style.opacity = '1';
-          }
-        });
-
-        li.appendChild(checkbox);
-        li.appendChild(label);
-        ingredientListEl.appendChild(li);
-      });
-    }
-  }
-
-  // 3. Render danh sách các bước thực hiện
-  const stepListEl = document.getElementById('step-list');
-  if (stepListEl) {
-    stepListEl.innerHTML = '';
-    
-    if (recipeObj.steps && Array.isArray(recipeObj.steps)) {
-      const ol = document.createElement('ol');
-      ol.style.paddingLeft = '20px';
-      
-      recipeObj.steps.forEach(step => {
-        const li = document.createElement('li');
-        // Xóa tiền tố "Bước X: " nếu trong dữ liệu đã có sẵn để tránh lặp, 
-        // hoặc giữ nguyên nếu dữ liệu chưa có. Ở đây ta hiển thị trực tiếp text.
-        li.textContent = step;
-        li.style.marginBottom = '8px';
-        ol.appendChild(li);
-      });
-      
-      stepListEl.appendChild(ol);
+function setAnyText(ids, value) {
+  for (const id of ids) {
+    const el = $(id);
+    if (el) {
+      el.textContent = value ?? '';
+      return;
     }
   }
 }
+
+/* ================= MAIN RENDER ================= */
+function renderDetail(recipe) {
+  if (!recipe) return;
+
+  renderHeader(recipe);
+  renderMeta(recipe);
+  renderIngredients(recipe.ingredients);
+  renderSteps(recipe.steps);
+  renderComments(recipe.comments);
+}
+
+/* ---------- Header (Tiêu đề + Ảnh) ---------- */
+function renderHeader(recipe) {
+  setText('detail-title', recipe.name);
+
+  const img = $('detail-image');
+  if (img) {
+    img.src = recipe.image || '';
+    img.alt = recipe.name || 'Hình ảnh món ăn';
+  }
+}
+
+/* ---------- Meta ---------- */
+function renderMeta(recipe) {
+  setAnyText(['detail-time', 'detail-cook-time'], recipe.time);
+  setAnyText(['detail-category', 'detail-type'], recipe.category);
+  setAnyText(['detail-difficulty', 'detail-level'], recipe.difficulty);
+  setAnyText(['detail-rating', 'detail-score'], recipe.rating);
+  setAnyText(['detail-author', 'detail-user'], recipe.author);
+}
+
+/* ---------- Ingredients ---------- */
+function renderIngredients(ingredients = []) {
+  const container = $('ingredient-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const ul = document.createElement('ul');
+  ul.className = 'ingredient-list';
+
+  ingredients.forEach((name, i) => {
+    const li = document.createElement('li');
+    li.className = 'ingredient-item';
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'ingredient-checkbox';
+    cb.id = `ing-${i}`;
+
+    const label = document.createElement('label');
+    label.className = 'ingredient-label';
+    label.htmlFor = cb.id;
+    label.textContent = name;
+
+    li.append(cb, label);
+    ul.appendChild(li);
+  });
+
+  container.appendChild(ul);
+}
+
+/* ---------- Steps ---------- */
+function renderSteps(steps = []) {
+  const container = $('step-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const ol = document.createElement('ol');
+  ol.className = 'step-list';
+
+  steps.forEach((raw, i) => {
+    // Bỏ tiền tố "Bước N:" vì đã có .step-num hiển thị số thứ tự
+    const text = String(raw).replace(/^Bước\s*\d+\s*[:.]\s*/i, '');
+
+    const li = document.createElement('li');
+    li.className = 'step-item';
+
+    const num = document.createElement('span');
+    num.className = 'step-num';
+    num.textContent = i + 1;
+
+    const p = document.createElement('p');
+    p.className = 'step-text';
+    p.textContent = text;
+
+    li.append(num, p);
+    ol.appendChild(li);
+  });
+
+  container.appendChild(ol);
+}
+
+/* ---------- Comments ---------- */
+function renderComments(comments = []) {
+  const heading = $('comment-heading');
+  if (heading) heading.textContent = `Bình luận (${comments.length})`;
+
+  const list = $('comment-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (!comments.length) {
+    const empty = document.createElement('p');
+    empty.className = 'comment-empty';
+    empty.textContent = 'Chưa có bình luận nào.';
+    list.appendChild(empty);
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  comments.forEach((c) => {
+    const item = document.createElement('div');
+    item.className = 'comment-item';
+
+    const author = document.createElement('div');
+    author.className = 'comment-author';
+    author.textContent = c.user || c.author || 'Ẩn danh';
+
+    const content = document.createElement('p');
+    content.className = 'comment-content';
+    content.textContent = c.content || c.text || '';
+
+    item.append(author, content);
+    frag.appendChild(item);
+  });
+  list.appendChild(frag);
+}
+
+/* ================= INTERACTIONS ================= */
+function initIngredientCheckboxEffect() {
+  const container = $('ingredient-list');
+  if (!container) return;
+
+  // Event delegation: gắn 1 lần, không lo render lại mất sự kiện
+  container.addEventListener('change', (e) => {
+    const cb = e.target;
+    if (!cb.matches('input[type="checkbox"].ingredient-checkbox')) return;
+
+    const li = cb.closest('.ingredient-item');
+    if (!li) return;
+
+    li.classList.toggle('completed', cb.checked);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initIngredientCheckboxEffect);
