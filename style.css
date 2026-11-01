@@ -53,7 +53,7 @@ body {
 
 .search-container {
   position: relative;
-  max-width: 380px;
+  max-width: 480px;
   width: 100%;
 }
 
@@ -339,6 +339,20 @@ body {
   flex-wrap: wrap;
 }
 
+.comment-author-input {
+  width: 120px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  flex-shrink: 0;
+}
+
+.comment-author-input:focus {
+  border-color: var(--primary-border);
+  outline: none;
+}
+
 .comment-input {
   flex-grow: 1;
   min-width: 220px;
@@ -428,6 +442,12 @@ body {
   max-width: 450px;
   margin: 0 auto;
   font-size: 0.95rem;
+}
+/* Danh sách nguyên liệu */
+.ingredient-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 /* Nguyên liệu đã hoàn thành */
 .ingredient-item.completed {

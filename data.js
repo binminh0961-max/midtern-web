@@ -147,6 +147,36 @@ const DEFAULT_RECIPES = [
     comments: [
       { author: "Hữu Nghĩa", ratingType: "Ngon 😋", content: "Vị chua thanh mát mùa hè ăn giải nhiệt rất tuyệt!" }
     ]
+  },
+  {
+    id: 6,
+    name: "Đậu Hũ Sốt Cà Chua",
+    category: "Món chay",
+    prepTime: "15 phút chuẩn bị",
+    cookTime: "20 phút",
+    difficulty: "Dễ",
+    rating: 4.9,
+    reviewCount: 19,
+    author: "Tuệ Lâm",
+    postedTime: "4 giờ trước",
+    image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1000&q=80",
+    ingredients: [
+      "3 miếng đậu hũ trắng (cắt vuông vừa ăn)",
+      "3 quả cà chua chín mọng, băm nhỏ",
+      "Hành boa-rô (tỏi tây), hành ngò",
+      "Gia vị chay: Nước tương, đường, hạt nêm nấm, tiêu",
+      "Dầu thực vật để chiên."
+    ],
+    steps: [
+      "Chiên đậu hũ vàng đều các mặt trong dầu nóng rồi vớt ra cho ráo dầu.",
+      "Phi thơm gốc hành boa-rô, cho cà chua băm vào xào nhuyễn thành sốt.",
+      "Nêm nước tương, đường, hạt nêm nấm và chút nước lọc, đun sôi cho sốt sánh lại.",
+      "Cho đậu hũ vào đảo nhẹ tay cho ngấm đều sốt trong 3-5 phút, rắc hành ngò và tiêu rồi tắt bếp."
+    ],
+    comments: [
+      { author: "Hải Yến", ratingType: "Ngon 😋", content: "Món chay thanh đạm nhưng sốt cà chua đậm đà bắt cơm cực kỳ!" },
+      { author: "Minh Tâm", ratingType: "Ngon 😋", content: "Đậu ngoài giòn trong mềm, làm vừa nhanh vừa tiết kiệm." }
+    ]
   }
 ];
 
@@ -155,7 +185,13 @@ function getRecipes() {
   const saved = localStorage.getItem("recipes");
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      // Đảm bảo dữ liệu LocalStorage có đủ món mặc định mới nhất
+      if (Array.isArray(parsed) && parsed.length < DEFAULT_RECIPES.length) {
+        localStorage.setItem("recipes", JSON.stringify(DEFAULT_RECIPES));
+        return DEFAULT_RECIPES;
+      }
+      return parsed;
     } catch (e) {
       console.error("Lỗi parse LocalStorage, dùng data mặc định:", e);
     }
